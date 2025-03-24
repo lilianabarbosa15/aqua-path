@@ -9,4 +9,3 @@ Por otro lado, en cuanto a las características del barco, este debe contar con 
 * módulo de ubicación GPS: para el monitoreo continuo de la ruta que sigue el sistema.
 * módulo de giroscopio: para control continuo de la estabilidad del sistema.
 
-*Miguel Trial
