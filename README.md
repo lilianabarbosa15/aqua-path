@@ -8,3 +8,5 @@ Por otro lado, en cuanto a las características del barco, este debe contar con 
 * módulo de detección de obstáculos: a través de sensores ultrasónicos ó láser, para que llegado el caso de que encuentre algún obstáculo este pueda determinar cómo alterar su rumbo para cumplir su misión.
 * módulo de ubicación GPS: para el monitoreo continuo de la ruta que sigue el sistema.
 * módulo de giroscopio: para control continuo de la estabilidad del sistema.
+
+*Miguel Trial
