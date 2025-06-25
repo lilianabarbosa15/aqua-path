@@ -1,11 +1,35 @@
 # AquaPath
 
-Desarrollo de un barco seguidor de rutas, donde este se conecte directamente con otro dispositivo como el computador o celular, para desde allí poder establecer la ruta a seguir a través de cierta interfaz donde la transmisión de datos sea en tiempo real suave. Vale resaltar que desde el dispositivo de propósito general debe irse observando constantemente la ruta seguida del barco donde si en debido caso este encuentra algún obstáculo en su rumbo proceda a adaptar la ruta.
-Por otro lado, en cuanto a las características del barco, este debe contar con diferentes módulos además de garantizar la flotabilidad de este:
+This project is about developing an autonomous route-following boat that communicates in soft real time with a general-purpose device like a computer. Through a user interface, the route can be set and monitored live. The boat adjusts its path automatically if it encounters obstacles.
 
-* módulo de comunicación: este debe ser a través de módulo Wifi, Bluetooth ó Lora para la transmisión de datos de ubicación con el computador ó celular.
-* módulo de control de motores: para poder controlar la velocidad con la que se traslada el dispositivo.
-* módulo de detección de obstáculos: a través de sensores ultrasónicos ó láser, para que llegado el caso de que encuentre algún obstáculo este pueda determinar cómo alterar su rumbo para cumplir su misión.
-* módulo de ubicación GPS: para el monitoreo continuo de la ruta que sigue el sistema.
-* módulo de giroscopio: para control continuo de la estabilidad del sistema.
+## Key Features
+- Wireless Communication
+Uses a module like the NRF24L01 for reliable, bidirectional communication with the base station (2.4GHz).
+
+- Motor Control
+Controls the boat’s movement and speed precisely.
+
+- Obstacle Detection
+Uses ultrasonic or laser sensors to detect and avoid obstacles during navigation.
+
+- GPS Positioning
+Provides continuous location tracking.
+
+- Orientation Control
+Includes a gyroscope and accelerometer (e.g., BMI160) for dynamic path correction and stability.
+
+- User Interface
+Displays a map with the boat’s real-time position, destination, and route progress.
+
+- Power Management
+Uses RP2040 sleep modes and efficient voltage regulators to extend battery life and maintain system stability.
+
+## System Requirements
+- Reliability: Must operate stably for at least 20 minutes continuously.
+
+- Interoperability: Compatible with standard wireless protocols.
+
+- Maintainability: Easy to update both firmware and user interface.
+
+- Availability: 75% uptime minimum, with auto-recovery or user alerts on failure.
 
