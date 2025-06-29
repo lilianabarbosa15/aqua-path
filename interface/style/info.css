@@ -1,0 +1,29 @@
+#controls > .button-connect {
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    padding: 10px;
+}
+
+#controls > .button-connect button {
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    background-color: #4b9dd3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#controls > p {
+    display: flex;
+    justify-content: space-between;
+}
+
+.received {
+    color: var(--color-boat);
+}
+
+.sent {
+    color: var(--color-final);
+}

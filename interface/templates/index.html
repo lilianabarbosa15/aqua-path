@@ -3,22 +3,79 @@
     <head>
         <meta charset="UTF-8">
         <title>Aqua Path</title>
-        <link rel="stylesheet" href="../static/style.css">
+        <link rel="stylesheet" href="../style/main.css">
         <link rel="icon" href="../images/boat.svg" type="image/svg+xml">
     </head>
     <body>
         <h2>Aqua Path</h2>
         <div id="app">
-            <div id="grid"></div>
-            <div id="controls">
-                <p class="sent">Coordenadas enviadas (x,y): <span id="coord-sent"></span></p>
-                <p class="sent">Trama enviada: <span id="trama-sent"></span></p>
-                <p class="received">Coordenadas recibidas (x,y): <span id="coord-received"></span></p>
-                <p class="received">Trama recibida: <span id="trama-received"></span></p>
-                <p>Diferencia minima entre Coordenadas: <span id="coord-diff"></span></p>
+
+            <div style="position: relative; height: 735px;">
+                <img src="../images/map.png" style="width: 100%; height: 100%; display: block;" />
+                <img src="../images/north.svg" style="position: absolute; top: 20px; left: 87%; width: 12%; aspect-ratio: 1/1;" />
+                <svg id="map-svg" viewBox="0 0 820 735" preserveAspectRatio="none" 
+                     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                    <polygon
+                        id="zone"
+                        points="41,20 700,20 700,208 750,208 750,704 41,704"
+                        fill="transparent"
+                        stroke="white"
+                        stroke-width="1"
+                    />
+                </svg>
+            </div>
+
+            <div id="controls" style="background-color: rgb(98, 95, 95); width: 100%; color: white;">
+                <div class="button-connect">
+                    <button id="connect-btn"> Connect with WebSocket </button>
+                </div>
+                <p class="sent" style="font-weight: bold; text-decoration: underline;">
+                    <span> Coordenadas finales (x,y): </span>
+                    <span id="coord-sent"> undefined </span>
+                </p>
+                <p class="sent">
+                    <!-- 0: Detener | 1: Máxima velocidad -->
+                    <span> Velocidad enviada (pwm): </span>
+                    <span id="vel-sent"> undefined </span>
+                </p>
+                <p class="sent">
+                    <!-- 1: Norte | 2: Noreste | 3: Este | 4: Sureste | 5: Sur | 6: Suroeste | 7: Oeste | 8: Noroeste -->
+                    <span> Dirección enviada (1-8): </span>
+                    <span id="dir-sent"> undefined </span>
+                </p>
+                <p>
+                    <span> Trama enviada: </span>
+                    <span id="trama-sent"> undefined </span>
+                </p>
+                <p class="received" style="font-weight: bold; text-decoration: underline;">
+                    <span> Coordenadas recibidas (x,y): </span>
+                    <span id="coord-received"> undefined </span>
+                </p>
+                <p class="received">
+                    <span> Latitud recibida: </span>
+                    <span id="lat-received"> undefined </span>
+                </p>
+                <p class="received">
+                    <span> Longitud recibida: </span>
+                    <span id="lon-received"> undefined </span>
+                </p>
+                <p class="received">
+                    <span> Orientación recibida: </span>
+                    <span id="ori-received"> undefined </span>
+                </p>
+                <p>
+                    <span> Trama recibida: </span>
+                    <span id="trama-received"> undefined </span>
+                </p>
+                <p>
+                    <span> Diferencia minima entre Coordenadas: </span>
+                    <span id="coord-diff"> undefined </span>
+                </p>
             </div>
         </div>
 
-        <script src="../static/script.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.3/dist/polygon-clipping.min.js"></script>
+        <script src="../script/main.js"></script>
+        <script type="module" src="../script/main.js"></script>
     </body>
 </html>

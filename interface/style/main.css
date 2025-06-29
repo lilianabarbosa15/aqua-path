@@ -1,3 +1,6 @@
+@import url('./route.css');
+@import url('./info.css');
+
 :root {
     /*Original Features*/
     --size-block: 16px;
@@ -38,42 +41,4 @@ h2 {
     flex-direction: row;
     gap: 10px;
     margin-top: 20px;
-}
-
-#grid {
-    display: grid;
-    grid-template-columns: repeat(var(--number-blocks), var(--size-block));
-    grid-template-rows: repeat(var(--number-blocks), var(--size-block));
-    gap: 2px;
-}
-
-#controls {
-    background-color: rgb(98, 95, 95);
-    width: 100%;
-    color: white;
-}
-
-.cell {
-    width: var(--size-block);
-    height: var(--size-block);
-    background: var(--color-block);
-    
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.destino {
-    background: var(--color-final);
-}
-
-.actual {
-    background: var(--color-boat);
-}
-
-.received {
-    color: var(--color-boat);
-}
-
-.sent {
-    color: var(--color-final);
 }
