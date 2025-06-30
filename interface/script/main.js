@@ -1,7 +1,6 @@
 // Others files
 import { pointInPolygon } from './grid.js';
-import { boatInFountain } from './received.js';
-
+import { boatSignals } from './received.js';
 
 // Grid of the fountain ------------------------------------------------------------------------------------------------------------
 // This script creates a grid of cells within a polygon defined by the SVG element with id "zone"
@@ -17,7 +16,7 @@ const height = 683;
 const cellW = width / cols;
 const cellH = height / rows;
 
-let selectedCell = null; // global variable to store the selected cell
+export let selectedCell = null; // global variable to store the selected cell
 
 // Iterate over each cell
 for (let r = 0; r < rows; r++) {
@@ -55,7 +54,9 @@ for (let r = 0; r < rows; r++) {
 
         // Update new cell
         selectedCell = cell;
-        const coordSent = document.getElementById('coord-sent');
+        const event = new Event("selectedCellChanged");           // Custom event to notify that a cell has been selected
+        document.dispatchEvent(event);
+        const coordSent = document.getElementById('coord-sent');  // Display coordinates of the selected cell
         coordSent.textContent = `(${c}, ${r})`;
         cell.setAttribute("fill", "rgba(13, 255, 0, 0.39)");
       });
@@ -88,8 +89,4 @@ export function routeCell(col, row) {
   previousRow = row;
 }
 
-document.getElementById("connect-btn").addEventListener("click", boatInFountain);   //////////////////////////// send instructions to the boat???
-
-
-// Handle the decision to send the instructions to the boat ------------------------------------------------------------------------  ???????????
-//document.getElementById("send-btn").addEventListener("click", () => { })
+document.getElementById("connect-btn").addEventListener("click", boatSignals);

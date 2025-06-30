@@ -1,29 +1,48 @@
+/* 
+ * This file contains the CSS styles for the AquaPath information section.
+ *
+ * It is designed to enhance the user interface of the AquaPath
+ * application by making it more user-friendly and visually appealing.
+ * It provides clear feedback and intuitive controls for the information 
+ * displayed to the user, including:
+ * - Coordinates sent: These are not actual coordinates, but rather the 
+ *   boat's velocity and direction, which are used to reach the target coordinates.
+ * - Coordinates received: Latitude, Longitude, Orientation.
+ * - Minimum difference between coordinates.
+ */
+
 #controls > .button-connect {
     display: flex; 
-    justify-content: center; 
-    align-items: center;
-    padding: 10px;
+    justify-content: space-evenly; 
+    padding: 20px;
 }
 
 #controls > .button-connect button {
     font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    background-color: #4b9dd3;
     color: white;
-    border: none;
+    border: 2px solid #ffffff;
     padding: 10px 20px;
     border-radius: 5px;
     cursor: pointer;
 }
+#connect-btn { background-color: #4b9dd3; }
+
+/*#controls > .button-connect #start-btn,
+#controls > .button-connect #stop-btn {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 40px;
+    border-radius: 16px;
+}
+#start-btn { background-color: #43e669; }
+#stop-btn { background-color: #e65b43; }*/
+
+#controls > .button-connect button:hover { transform: scale(1.05); }
 
 #controls > p {
     display: flex;
     justify-content: space-between;
 }
 
-.received {
-    color: var(--color-boat);
-}
-
-.sent {
-    color: var(--color-final);
-}
+.received { color: #b0dfff; }
+.sent { color: #00ff88; }

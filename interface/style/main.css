@@ -1,19 +1,12 @@
-@import url('./route.css');
+/*
+ * Main CSS file for AquaPath application, this file invokes other CSS files
+ * to keep the code organized and modular, such as route.css and info.css.
+ * It defines the overall styles for the application, including layout,
+ * colors, and typography.
+ */
+
+
 @import url('./info.css');
-
-:root {
-    /*Original Features*/
-    --size-block: 16px;
-    --color-block: #ff00008b;
-    --space-between-block: 16px;
-    --number-blocks: 40;
-
-    /*Aim*/
-    --color-final: #00ff88;
-
-    /*Boat*/
-    --color-boat: #b0dfff;
-}
 
 body {
     font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
