@@ -1,3 +1,4 @@
+import { sentIntructions } from './sent.js';
 
 // functions between final point and real boat localization
 export function evaluateCoordenates(x, y, orientation, selectedCell) {
@@ -17,4 +18,7 @@ export function evaluateCoordenates(x, y, orientation, selectedCell) {
     // Difference between final point and boat coordinates
     const coordDiffDisplay = document.getElementById("coord-diff");
     coordDiffDisplay.textContent = `(${diffX}, ${diffY})`;
+
+    // Calculate the kind of instructions to send
+    sentIntructions({x, y, orientation}, selectedCell);
 }

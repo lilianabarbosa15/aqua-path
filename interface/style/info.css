@@ -27,16 +27,6 @@
 }
 #connect-btn { background-color: #4b9dd3; }
 
-/*#controls > .button-connect #start-btn,
-#controls > .button-connect #stop-btn {
-    font-size: 16px;
-    font-weight: bold;
-    padding: 5px 40px;
-    border-radius: 16px;
-}
-#start-btn { background-color: #43e669; }
-#stop-btn { background-color: #e65b43; }*/
-
 #controls > .button-connect button:hover { transform: scale(1.05); }
 
 #controls > p {

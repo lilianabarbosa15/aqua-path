@@ -1,8 +1,13 @@
 // Others files
-import { pointInPolygon } from './grid.js';
+import { pointInPolygon, orientationDeg } from './grid.js';
 import { boatSignals } from './received.js';
 
 // Grid of the fountain ------------------------------------------------------------------------------------------------------------
+// This establish the map's north
+const northMap = document.getElementById("north-map");
+const degree = orientationDeg[1]["deg"];
+northMap.style.transform = `rotate(${degree}deg)`;
+
 // This script creates a grid of cells within a polygon defined by the SVG element with id "zone"
 const svg = document.getElementById("map-svg");
 const zone = document.getElementById("zone");

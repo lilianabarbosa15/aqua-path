@@ -579,3 +579,23 @@ export const grid = [
     console.log("Grid loaded:", grid);
   })
   .catch(error => console.error("Error loading CSV:", error));*/
+
+// Equivalence of each orientation
+/*
+  north_dir = -95deg:
+  | 1: North (transform: rotate(-95deg)) | 2: Northeast (transform: rotate(-50deg)) |
+  | 3: East  (transform: rotate(-5deg))  | 4: Southeast (transform: rotate(40deg))  |
+  | 5: South   (transform: rotate(85deg))| 6: Southwest (transform: rotate(130deg)) |
+  | 7: West (transform: rotate(-185deg)) | 8: Northwest (transform: rotate(-140deg))|
+*/
+const north_dir = -95;
+export const orientationDeg = { 
+  "1": { "deg": north_dir, "name": "North" }, 
+  "2": { "deg": north_dir + 45, "name": "Northeast" },
+  "3": { "deg": north_dir + 90, "name": "East" },
+  "4": { "deg": north_dir + 135, "name": "Southeast" },
+  "5": { "deg": north_dir + 180, "name": "South" },
+  "6": { "deg": north_dir + 225, "name": "Southwest" },
+  "7": { "deg": north_dir - 90, "name": "West" },
+  "8": { "deg": north_dir - 45, "name": "Northwest" },
+};
