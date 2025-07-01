@@ -1,4 +1,4 @@
-import { sentIntructions } from './sent.js';
+import { calculateIntructions } from './sent.js';
 
 // functions between final point and real boat localization
 export function evaluateCoordenates(x, y, orientation, selectedCell) {
@@ -20,5 +20,5 @@ export function evaluateCoordenates(x, y, orientation, selectedCell) {
     coordDiffDisplay.textContent = `(${diffX}, ${diffY})`;
 
     // Calculate the kind of instructions to send
-    sentIntructions({x, y, orientation}, selectedCell);
+    calculateIntructions({x, y, orientation}, selectedCell);
 }

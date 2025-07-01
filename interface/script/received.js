@@ -31,13 +31,17 @@ function signalsToCoordinates(pointGPS) {
 
 // Function to handle boat signals and convert them to coordinates
 // This function listens to the serial port for incoming messages from the boat
+export let writer = null;
 export async function boatSignals() {
   try {
-    const port = await navigator.serial.requestPort();
-    await port.open({ baudRate: 112500 });
+    const serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 112500 });
+
+    // Setup writer
+    writer = serialPort.writable.getWriter();
 
     const textDecoder = new TextDecoderStream();
-    const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
+    const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
     const inputStream = textDecoder.readable;
     const reader = inputStream.getReader();
 
