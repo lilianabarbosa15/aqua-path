@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Lancha Lancha_trial.c bmi160_lib.c bmi160_lib.h)
+add_executable(Lancha Lancha_trial.c bmi160_lib.c bmi160_lib.h qmc5883l.c qmc5883l.h)
 
 pico_set_program_name(Lancha "Lancha")
 pico_set_program_version(Lancha "0.1")

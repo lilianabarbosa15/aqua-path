@@ -2,87 +2,70 @@
 #include <math.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include "qmc5883l.h"
 
-#define I2C_PORT        i2c0
-#define SDA_PIN         4
-#define SCL_PIN         5
-#define BMI160_ADDR     0x68
-#define ACCEL_SENS      16384.0f   // ±2 g  -> LSB/g
-#define GYRO_SENS       131.0f     // ±250 dps -> LSB/(°/s)
+#define I2C_PORT i2c0
+#define I2C_SDA 16
+#define I2C_SCL 17
 
-// --- UMBRALES DE MOVIMIENTO ---------------------------------------------
-#define ACCEL_THRES     1.00f      // [m/s²]  des-vío respecto a 1 g
-#define GYRO_THRES      4.00f      // [°/s]   norma angular
-// ------------------------------------------------------------------------
+#define DECLINACION_MAGNETICA  -4.0  // declinación en grados (ajustar según ubicación)
+#define FILTRO_N 10                 // tamaño del filtro de media móvil
 
-void bmi160_write_reg(uint8_t reg, uint8_t val) {
-    uint8_t buf[2] = {reg, val};
-    i2c_write_blocking(I2C_PORT, BMI160_ADDR, buf, 2, false);
-}
-void bmi160_read_regs(uint8_t reg, uint8_t *buf, uint8_t len) {
-    i2c_write_blocking(I2C_PORT, BMI160_ADDR, &reg, 1, true);
-    i2c_read_blocking(I2C_PORT, BMI160_ADDR, buf, len, false);
-}
-static inline int16_t to_i16(uint8_t lsb, uint8_t msb) {
-    return (int16_t)((msb << 8) | lsb);
-}
-void read_accel(float *ax, float *ay, float *az) {
-    uint8_t d[6];  bmi160_read_regs(0x12, d, 6);
-    *ax = to_i16(d[0], d[1]) * (9.81f / ACCEL_SENS);
-    *ay = to_i16(d[2], d[3]) * (9.81f / ACCEL_SENS);
-    *az = to_i16(d[4], d[5]) * (9.81f / ACCEL_SENS);
-}
-void read_gyro(float *gx, float *gy, float *gz) {
-    uint8_t d[6];  bmi160_read_regs(0x0C, d, 6);
-    *gx = to_i16(d[0], d[1]) / GYRO_SENS;
-    *gy = to_i16(d[2], d[3]) / GYRO_SENS;
-    *gz = to_i16(d[4], d[5]) / GYRO_SENS;
+float filtro[FILTRO_N];
+int filtro_index = 0;
+bool filtro_lleno = false;
+
+// Agrega nueva lectura al filtro de media móvil
+float media_movil(float nuevo_valor) {
+    filtro[filtro_index] = nuevo_valor;
+    filtro_index = (filtro_index + 1) % FILTRO_N;
+
+    int n = filtro_lleno ? FILTRO_N : filtro_index;
+
+    float suma = 0.0;
+    for (int i = 0; i < n; i++) {
+        suma += filtro[i];
+    }
+
+    if (filtro_index == 0) filtro_lleno = true;
+
+    return suma / n;
 }
 
 int main() {
     stdio_init_all();
+    i2c_init(I2C_PORT, 100 * 1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
 
-    // I2C
-    i2c_init(I2C_PORT, 400000);
-    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
-    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
-    gpio_pull_up(SDA_PIN);  gpio_pull_up(SCL_PIN);
+    printf("Iniciando QMC5883L...\n");
+    qmc5883l_init(I2C_PORT);
 
-    // LED a bordo (GP25)
-    const uint LED_PIN = 25;
-    gpio_init(LED_PIN); gpio_set_dir(LED_PIN, GPIO_OUT);
-
-    sleep_ms(500);
-    bmi160_write_reg(0x7E, 0x11);      // acel. modo normal
-    sleep_ms(50);
-    bmi160_write_reg(0x7E, 0x15);      // gyro modo normal
-    sleep_ms(100);
-    bmi160_write_reg(0x7E, 0x37);      // auto-calibración acel
-    sleep_ms(1000);
-
-    float ax, ay, az, gx, gy, gz;
+    int16_t x, y, z;
 
     while (true) {
-        read_accel(&ax, &ay, &az);
-        read_gyro (&gx, &gy, &gz);
+        if (qmc5883l_read_raw(I2C_PORT, &x, &y, &z)) {
+            // Cálculo del heading (norte magnético)
+            float heading = atan2((float)y, (float)x) * (180.0 / M_PI);
+            if (heading < 0) heading += 360.0;
 
-        // Magnitudes
-        float gyro_norm  = sqrtf(gx*gx + gy*gy + gz*gz);
-        float accel_norm = sqrtf(ax*ax + ay*ay + az*az);
-        float accel_dev  = fabsf(accel_norm - 9.81f);
+            // Corrección por declinación magnética
+            heading += DECLINACION_MAGNETICA;
+            if (heading < 0) heading += 360.0;
+            if (heading >= 360) heading -= 360.0;
 
-        bool moving = (gyro_norm  > GYRO_THRES) ||
-                      (accel_dev  > ACCEL_THRES);
+            // Filtrar el heading con media móvil
+            float heading_filtrado = media_movil(heading);
 
-        gpio_put(LED_PIN, moving); // LED ON cuando se mueve
+            // Imprimir resultados
+            printf("X:%6d  Y:%6d  Z:%6d  | Heading: %.2f°  | Filtrado: %.2f°\n",
+                   x, y, z, heading, heading_filtrado);
+        } else {
+            printf("Error leyendo QMC5883L\n");
+        }
 
-        printf("AX=%.2f AY=%.2f AZ=%.2f "
-               "GX=%.2f GY=%.2f GZ=%.2f "
-               "STATE=%s\n",
-               ax, ay, az, gx, gy, gz,
-               moving ? "MOV" : "STAB");
-
-        sleep_ms(100); // 10 Hz
+        sleep_ms(300);
     }
-    return 0;
 }
