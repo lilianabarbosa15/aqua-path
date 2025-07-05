@@ -1,9 +1,23 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include "pico/stdlib.h"
+#include "hardware/uart.h"
 #include "hardware/pwm.h"
-#include "bmi160_lib.h"
+
+#include "nmea_parser.h"
+#include "qmc5883l.h"
+
+#define BT_UART_ID uart0
+#define BT_BAUD_RATE 9600
+#define BT_TX_PIN 0
+#define BT_RX_PIN 1
+
+#define GPS_UART_ID uart1
+#define GPS_BAUD_RATE 9600
+#define GPS_TX_PIN 8
+#define GPS_RX_PIN 9
 
 #define ESC_PWM_PIN     22
 #define SERVO_PWM_PIN   28
@@ -12,6 +26,21 @@
 #define SERVO_DER_US    1800
 #define ESC_OFF_US      1000
 #define ESC_LOW_US      1100
+
+#define BUF_SIZE 256
+
+float calcular_rumbo(int16_t x, int16_t y) {
+    float fx = x - offsetX;
+    float fy = y - offsetY;
+    float heading = atan2f(fy, fx);
+    float deg = heading * (180.0f / M_PI);
+    if (deg < 0) deg += 360.0f;
+    deg -= 106.0f;
+    deg += DECLINATION;
+    if (deg < 0) deg += 360.0f;
+    if (deg >= 360.0f) deg -= 360.0f;
+    return deg;
+}
 
 void init_pwm(uint pin) {
     gpio_set_function(pin, GPIO_FUNC_PWM);
@@ -28,100 +57,91 @@ void set_pwm_us(uint pin, uint16_t us) {
     pwm_set_chan_level(slice, pwm_gpio_to_channel(pin), level);
 }
 
-int calcular_diferencia(int actual, int objetivo) {
-    int diff = (objetivo - actual + 8) % 8;
-    return diff;
-}
+char cmd_buffer[64];
+int cmd_index = 0;
 
-void orientar_a_direccion(int objetivo) {
-    const char* etiquetas[] = {
-        "Norte", "Noreste", "Este", "Sureste",
-        "Sur", "Suroeste", "Oeste", "Noroeste"
-    };
-
-    printf("Iniciando orientación hacia %s (%d)...\n", etiquetas[objetivo - 1], objetivo);
-
-    while (true) {
-        bmi160_actualizar_orientacion();
-        int actual = bmi160_get_orientacion();
-        printf("🧭 Dirección actual: %d (%s)\n", actual, etiquetas[actual - 1]);
-
-        if (actual == objetivo) {
-            printf("✅ Orientación alcanzada.\n");
-            break;
-        }
-
-        int diff = calcular_diferencia(actual, objetivo);
-        bool girar_derecha = (diff <= 4);
-
-        set_pwm_us(SERVO_PWM_PIN, girar_derecha ? SERVO_DER_US : SERVO_IZQ_US);
-        set_pwm_us(ESC_PWM_PIN, ESC_LOW_US);
-        sleep_ms(800);
-        set_pwm_us(ESC_PWM_PIN, ESC_OFF_US);
-        set_pwm_us(SERVO_PWM_PIN, SERVO_CENTRO_US);
-        sleep_ms(500);
-    }
-}
-
-void leer_linea_usb(char *buffer, size_t max_len) {
-    size_t idx = 0;
-    while (true) {
-        int ch = getchar_timeout_us(0);
-        if (ch == PICO_ERROR_TIMEOUT) {
-            sleep_ms(10);
-            continue;
-        }
-        putchar(ch);
-        if (ch == '\n' || ch == '\r') {
-            buffer[idx] = '\0';
-            if (idx > 0) {
-                printf("\nRecibido: [%s]\n", buffer);
-                return;
-            }
-        } else if (idx < max_len - 1) {
-            buffer[idx++] = (char)ch;
-        }
-    }
-}
 int main() {
     stdio_init_all();
 
-    while (!stdio_usb_connected()) {
-        sleep_ms(100);
-    }
+    uart_init(BT_UART_ID, BT_BAUD_RATE);
+    gpio_set_function(BT_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(BT_RX_PIN, GPIO_FUNC_UART);
 
-    printf("Inicializando sensor BMI160...\n");
-    bmi160_iniciar(4, 5);
+    uart_init(GPS_UART_ID, GPS_BAUD_RATE);
+    gpio_set_function(GPS_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(GPS_RX_PIN, GPIO_FUNC_UART);
 
+    qmc5883l_init();
     init_pwm(ESC_PWM_PIN);
     init_pwm(SERVO_PWM_PIN);
 
-    // Inicialización del ESC
-    printf("Inicializando ESC...\n");
-    set_pwm_us(ESC_PWM_PIN, 2000);  // Pulso alto
-    sleep_ms(2000);
-    set_pwm_us(ESC_PWM_PIN, 1000);  // Pulso bajo (reposo)
-    sleep_ms(2000);
-    printf("ESC listo.\n");
-
-    // Centrar el servo al inicio
+    set_pwm_us(ESC_PWM_PIN, 1000);
     set_pwm_us(SERVO_PWM_PIN, SERVO_CENTRO_US);
 
-    char buffer[64];
-    printf("Listo. Escribe: posicion <1–8>\n");
+    const char *inicio = "\r\n✅ Sistema listo. Enviando (lat,lon,rumbo) y recibiendo velocidad/direccion.\r\n";
+    uart_write_blocking(BT_UART_ID, (const uint8_t *)inicio, strlen(inicio));
+
+    char gps_line[BUF_SIZE];
+    int index = 0;
+    gps_data_t gps;
+    kalman_t kalman_lat;
+    kalman_t kalman_lon;
+    kalman_init(&kalman_lat, 7, 1, 0.00001);
+    kalman_init(&kalman_lon, -80, 1, 0.00001);
 
     while (true) {
-        leer_linea_usb(buffer, sizeof(buffer));
-
-        if (strncmp(buffer, "posicion ", 9) == 0) {
-            int objetivo = atoi(&buffer[9]);
-            if (objetivo >= 1 && objetivo <= 8) {
-                orientar_a_direccion(objetivo);
-            } else {
-                printf("Dirección inválida. Usa un valor entre 1 y 8.\n");
+        // Procesar comandos recibidos por Bluetooth (no bloqueante)
+        if (uart_is_readable(BT_UART_ID)) {
+            char c = uart_getc(BT_UART_ID);
+            uart_putc(BT_UART_ID, c); // ECO para confirmar
+            if (c == '\n' || c == '\r') {
+                cmd_buffer[cmd_index] = '\0';
+                if (cmd_index > 0) {
+                    if (strncmp(cmd_buffer, "velocidad ", 10) == 0) {
+                        int velocidad = atoi(cmd_buffer + 10);
+                        if (velocidad >= 0 && velocidad <= 100) {
+                            uint16_t us = ESC_OFF_US + (velocidad * (ESC_LOW_US - ESC_OFF_US) / 100);
+                            set_pwm_us(ESC_PWM_PIN, us);
+                        }
+                    } else if (strncmp(cmd_buffer, "posicion ", 9) == 0) {
+                        int posicion = atoi(cmd_buffer + 9);
+                        if (posicion >= 1 && posicion <= 360) {
+                            int16_t us = SERVO_CENTRO_US + (posicion - 180) * (SERVO_DER_US - SERVO_CENTRO_US) / 180;
+                            set_pwm_us(SERVO_PWM_PIN, us);
+                        }
+                    }
+                    cmd_index = 0;
+                }
+            } else if (cmd_index < sizeof(cmd_buffer) - 1) {
+                cmd_buffer[cmd_index++] = c;
             }
-        } else {
-            printf("Comando no válido. Usa: posicion <1–8>\n");
         }
+
+        // Leer datos del GPS
+        if (uart_is_readable(GPS_UART_ID)) {
+            char c = uart_getc(GPS_UART_ID);
+            if (c == '\n' || index >= BUF_SIZE - 1) {
+                gps_line[index] = '\0';
+                index = 0;
+
+                if (gps_line[0] == '$' && nmea_parse_line(gps_line, &gps)) {
+                    double lat_f = kalman_update(&kalman_lat, gps.latitude);
+                    double lon_f = kalman_update(&kalman_lon, gps.longitude);
+
+                    int16_t x, y, z;
+                    float heading = 0.0f;
+                    if (qmc5883l_read_raw(&x, &y, &z)) {
+                        heading = calcular_rumbo(x, y);
+                    }
+
+                    char mensaje[128];
+                    snprintf(mensaje, sizeof(mensaje), "(%.6f,%.6f,%d)\r\n", lat_f, lon_f, (int)(heading + 0.5f));
+                    uart_write_blocking(BT_UART_ID, (const uint8_t *)mensaje, strlen(mensaje));
+                }
+            } else if (c != '\r') {
+                gps_line[index++] = c;
+            }
+        }
+        sleep_ms(1);
     }
 }

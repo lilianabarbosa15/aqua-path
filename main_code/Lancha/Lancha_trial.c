@@ -1,71 +1,147 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <math.h>
 #include "pico/stdlib.h"
-#include "hardware/i2c.h"
+#include "hardware/uart.h"
+#include "hardware/pwm.h"
+
+#include "nmea_parser.h"
 #include "qmc5883l.h"
 
-#define I2C_PORT i2c0
-#define I2C_SDA 16
-#define I2C_SCL 17
+#define BT_UART_ID uart0
+#define BT_BAUD_RATE 9600
+#define BT_TX_PIN 0
+#define BT_RX_PIN 1
 
-#define DECLINACION_MAGNETICA  -4.0  // declinación en grados (ajustar según ubicación)
-#define FILTRO_N 10                 // tamaño del filtro de media móvil
+#define GPS_UART_ID uart1
+#define GPS_BAUD_RATE 9600
+#define GPS_TX_PIN 8
+#define GPS_RX_PIN 9
 
-float filtro[FILTRO_N];
-int filtro_index = 0;
-bool filtro_lleno = false;
+#define ESC_PWM_PIN     22
+#define SERVO_PWM_PIN   28
+#define SERVO_CENTRO_US 1500
+#define SERVO_IZQ_US    1200
+#define SERVO_DER_US    1800
+#define ESC_OFF_US      1000
+#define ESC_LOW_US      1100
 
-// Agrega nueva lectura al filtro de media móvil
-float media_movil(float nuevo_valor) {
-    filtro[filtro_index] = nuevo_valor;
-    filtro_index = (filtro_index + 1) % FILTRO_N;
+#define BUF_SIZE 256
 
-    int n = filtro_lleno ? FILTRO_N : filtro_index;
-
-    float suma = 0.0;
-    for (int i = 0; i < n; i++) {
-        suma += filtro[i];
-    }
-
-    if (filtro_index == 0) filtro_lleno = true;
-
-    return suma / n;
+float calcular_rumbo(int16_t x, int16_t y) {
+    float fx = x - offsetX;
+    float fy = y - offsetY;
+    float heading = atan2f(fy, fx);
+    float deg = heading * (180.0f / M_PI);
+    if (deg < 0) deg += 360.0f;
+    deg -= 106.0f;
+    deg += DECLINATION;
+    if (deg < 0) deg += 360.0f;
+    if (deg >= 360.0f) deg -= 360.0f;
+    return deg;
 }
+
+void init_pwm(uint pin) {
+    gpio_set_function(pin, GPIO_FUNC_PWM);
+    uint slice = pwm_gpio_to_slice_num(pin);
+    pwm_config cfg = pwm_get_default_config();
+    pwm_config_set_clkdiv(&cfg, 64.0f);
+    pwm_config_set_wrap(&cfg, 39062);
+    pwm_init(slice, &cfg, true);
+}
+
+void set_pwm_us(uint pin, uint16_t us) {
+    uint slice = pwm_gpio_to_slice_num(pin);
+    uint16_t level = (us * 39062) / 20000;
+    pwm_set_chan_level(slice, pwm_gpio_to_channel(pin), level);
+}
+
+char cmd_buffer[64];
+int cmd_index = 0;
 
 int main() {
     stdio_init_all();
-    i2c_init(I2C_PORT, 100 * 1000);
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(I2C_SDA);
-    gpio_pull_up(I2C_SCL);
 
-    printf("Iniciando QMC5883L...\n");
-    qmc5883l_init(I2C_PORT);
+    uart_init(BT_UART_ID, BT_BAUD_RATE);
+    gpio_set_function(BT_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(BT_RX_PIN, GPIO_FUNC_UART);
 
-    int16_t x, y, z;
+    uart_init(GPS_UART_ID, GPS_BAUD_RATE);
+    gpio_set_function(GPS_TX_PIN, GPIO_FUNC_UART);
+    gpio_set_function(GPS_RX_PIN, GPIO_FUNC_UART);
+
+    qmc5883l_init();
+    init_pwm(ESC_PWM_PIN);
+    init_pwm(SERVO_PWM_PIN);
+
+    set_pwm_us(ESC_PWM_PIN, 1000);
+    set_pwm_us(SERVO_PWM_PIN, SERVO_CENTRO_US);
+
+    const char *inicio = "\r\n✅ Sistema listo. Enviando (lat,lon,rumbo) y recibiendo velocidad/direccion.\r\n";
+    uart_write_blocking(BT_UART_ID, (const uint8_t *)inicio, strlen(inicio));
+
+    char gps_line[BUF_SIZE];
+    int index = 0;
+    gps_data_t gps;
+    kalman_t kalman_lat;
+    kalman_t kalman_lon;
+    kalman_init(&kalman_lat, 7, 1, 0.00001);
+    kalman_init(&kalman_lon, -80, 1, 0.00001);
 
     while (true) {
-        if (qmc5883l_read_raw(I2C_PORT, &x, &y, &z)) {
-            // Cálculo del heading (norte magnético)
-            float heading = atan2((float)y, (float)x) * (180.0 / M_PI);
-            if (heading < 0) heading += 360.0;
-
-            // Corrección por declinación magnética
-            heading += DECLINACION_MAGNETICA;
-            if (heading < 0) heading += 360.0;
-            if (heading >= 360) heading -= 360.0;
-
-            // Filtrar el heading con media móvil
-            float heading_filtrado = media_movil(heading);
-
-            // Imprimir resultados
-            printf("X:%6d  Y:%6d  Z:%6d  | Heading: %.2f°  | Filtrado: %.2f°\n",
-                   x, y, z, heading, heading_filtrado);
-        } else {
-            printf("Error leyendo QMC5883L\n");
+        // Procesar comandos recibidos por Bluetooth (no bloqueante)
+        if (uart_is_readable(BT_UART_ID)) {
+            char c = uart_getc(BT_UART_ID);
+            uart_putc(BT_UART_ID, c); // ECO para confirmar
+            if (c == '\n' || c == '\r') {
+                cmd_buffer[cmd_index] = '\0';
+                if (cmd_index > 0) {
+                    if (strncmp(cmd_buffer, "velocidad ", 10) == 0) {
+                        int velocidad = atoi(cmd_buffer + 10);
+                        if (velocidad >= 0 && velocidad <= 100) {
+                            uint16_t us = ESC_OFF_US + (velocidad * (ESC_LOW_US - ESC_OFF_US) / 100);
+                            set_pwm_us(ESC_PWM_PIN, us);
+                        }
+                    } else if (strncmp(cmd_buffer, "posicion ", 9) == 0) {
+                        int posicion = atoi(cmd_buffer + 9);
+                        if (posicion >= 1 && posicion <= 360) {
+                            int16_t us = SERVO_CENTRO_US + (posicion - 180) * (SERVO_DER_US - SERVO_CENTRO_US) / 180;
+                            set_pwm_us(SERVO_PWM_PIN, us);
+                        }
+                    }
+                    cmd_index = 0;
+                }
+            } else if (cmd_index < sizeof(cmd_buffer) - 1) {
+                cmd_buffer[cmd_index++] = c;
+            }
         }
 
-        sleep_ms(300);
+        // Leer datos del GPS
+        if (uart_is_readable(GPS_UART_ID)) {
+            char c = uart_getc(GPS_UART_ID);
+            if (c == '\n' || index >= BUF_SIZE - 1) {
+                gps_line[index] = '\0';
+                index = 0;
+
+                if (gps_line[0] == '$' && nmea_parse_line(gps_line, &gps)) {
+                    double lat_f = kalman_update(&kalman_lat, gps.latitude);
+                    double lon_f = kalman_update(&kalman_lon, gps.longitude);
+
+                    int16_t x, y, z;
+                    float heading = 0.0f;
+                    if (qmc5883l_read_raw(&x, &y, &z)) {
+                        heading = calcular_rumbo(x, y);
+                    }
+
+                    char mensaje[128];
+                    snprintf(mensaje, sizeof(mensaje), "(%.6f,%.6f,%d)\r\n", lat_f, lon_f, (int)(heading + 0.5f));
+                    uart_write_blocking(BT_UART_ID, (const uint8_t *)mensaje, strlen(mensaje));
+                }
+            } else if (c != '\r') {
+                gps_line[index++] = c;
+            }
+        }
+        sleep_ms(1);
     }
 }

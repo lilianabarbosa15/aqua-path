@@ -38,8 +38,8 @@ void nrf24_write_byte(uint8_t reg, uint8_t value) {
 void nrf24_init() {
     gpio_init(NRF_CE);
     gpio_init(NRF_CSN);
-    gpio_set_dir(NRF_CE, GPIO_OUT);
-    gpio_set_dir(NRF_CSN, GPIO_OUT);
+    gpio_set_dir(NRF_CE, 1);
+    gpio_set_dir(NRF_CSN, 1);
 
     ce_low();
     csn_high();
@@ -54,8 +54,8 @@ void nrf24_init() {
     nrf24_write_byte(NRF_SETUP_AW, 0x03);     // Address width = 5 bytes
     nrf24_write_byte(NRF_RF_CH, 76);          // Channel 76
     nrf24_write_byte(NRF_SETUP_RETR, 0x3F);   // Retry delay, count
-    nrf24_write_byte(NRF_RF_SETUP, 0x06);     // 1 Mbps, 0 dBm
-    nrf24_write_byte(NRF_EN_AA, 0x00);        // Auto ACK on pipe 0
+    nrf24_write_byte(NRF_RF_SETUP, 0x26);     // 1 Mbps, 0 dBm
+    nrf24_write_byte(NRF_EN_AA, 0x01);        // Auto ACK on pipe 0
     nrf24_write_byte(NRF_EN_RXADDR, 0x01);    // Enable data pipe 0
 }
 

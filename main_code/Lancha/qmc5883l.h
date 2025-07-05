@@ -1,15 +1,25 @@
 #ifndef QMC5883L_H
 #define QMC5883L_H
 
-#include "hardware/i2c.h"
+#include <stdbool.h>
 
-#define QMC5883L_ADDR        0x0D
+// Dirección y pines
+#define QMC5883L_ADDR  0x0D
 
-#define QMC5883L_REG_X_LSB   0x00
-#define QMC5883L_REG_CTRL1   0x09
-#define QMC5883L_REG_RESET   0x0A
+// Parámetros
+#define DECLINATION    -7.78f
 
-void qmc5883l_init(i2c_inst_t *i2c);
-bool qmc5883l_read_raw(i2c_inst_t *i2c, int16_t *x, int16_t *y, int16_t *z);
+// Offsets (ajustables después de calibrar)
+extern float offsetX;
+extern float offsetY;
+
+// Inicializa el sensor
+void qmc5883l_init();
+
+// Lee datos crudos del sensor
+bool qmc5883l_read_raw(int16_t *x, int16_t *y, int16_t *z);
+
+// Convierte heading en grados a texto cardinal
+const char* deg_name(float headingDeg);
 
 #endif

@@ -35,14 +35,14 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Lancha Lancha_trial.c bmi160_lib.c bmi160_lib.h qmc5883l.c qmc5883l.h)
+add_executable(Lancha Lancha_trial.c qmc5883l.c qmc5883l.h nmea_parser.c nmea_parser.h)
 
 pico_set_program_name(Lancha "Lancha")
 pico_set_program_version(Lancha "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Lancha 1)
-pico_enable_stdio_usb(Lancha 1)
+pico_enable_stdio_usb(Lancha 0)
 
 # Add the standard library to the build
 target_link_libraries(Lancha

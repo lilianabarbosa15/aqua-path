@@ -5,8 +5,8 @@
 #include "pico/stdlib.h"
 
 // Pines SPI1 de Raspberry Pi Pico (puedes cambiarlos)
-#define NRF_CE   15
-#define NRF_CSN  14
+#define NRF_CE   8
+#define NRF_CSN  9
 #define SPI_PORT spi1
 
 // === Funciones comunes ===
