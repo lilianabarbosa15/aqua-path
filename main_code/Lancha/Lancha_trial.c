@@ -5,6 +5,7 @@
 #include "pico/stdlib.h"
 #include "hardware/uart.h"
 #include "hardware/pwm.h"
+#include "pico/time.h"
 
 #include "nmea_parser.h"
 #include "qmc5883l.h"
@@ -57,8 +58,16 @@ void set_pwm_us(uint pin, uint16_t us) {
     pwm_set_chan_level(slice, pwm_gpio_to_channel(pin), level);
 }
 
+uint16_t angulo_a_pwm(int angulo) {
+    return SERVO_CENTRO_US + (angulo - 180) * (SERVO_DER_US - SERVO_CENTRO_US) / 180;
+}
+
 char cmd_buffer[64];
 int cmd_index = 0;
+
+volatile int posicion_deseada = 180;
+int posicion_actual = 180;
+absolute_time_t ultima_actualizacion;
 
 int main() {
     stdio_init_all();
@@ -77,6 +86,8 @@ int main() {
 
     set_pwm_us(ESC_PWM_PIN, 1000);
     set_pwm_us(SERVO_PWM_PIN, SERVO_CENTRO_US);
+
+    ultima_actualizacion = get_absolute_time();
 
     const char *inicio = "\r\n✅ Sistema listo. Enviando (lat,lon,rumbo) y recibiendo velocidad/direccion.\r\n";
     uart_write_blocking(BT_UART_ID, (const uint8_t *)inicio, strlen(inicio));
@@ -106,8 +117,7 @@ int main() {
                     } else if (strncmp(cmd_buffer, "posicion ", 9) == 0) {
                         int posicion = atoi(cmd_buffer + 9);
                         if (posicion >= 1 && posicion <= 360) {
-                            int16_t us = SERVO_CENTRO_US + (posicion - 180) * (SERVO_DER_US - SERVO_CENTRO_US) / 180;
-                            set_pwm_us(SERVO_PWM_PIN, us);
+                            posicion_deseada = posicion;
                         }
                     }
                     cmd_index = 0;
@@ -115,6 +125,18 @@ int main() {
             } else if (cmd_index < sizeof(cmd_buffer) - 1) {
                 cmd_buffer[cmd_index++] = c;
             }
+        }
+
+        // Corrección continua del servo hacia posicion_deseada
+        if (absolute_time_diff_us(ultima_actualizacion, get_absolute_time()) > 50000) {
+            ultima_actualizacion = get_absolute_time();
+            if (posicion_actual < posicion_deseada) {
+                posicion_actual++;
+            } else if (posicion_actual > posicion_deseada) {
+                posicion_actual--;
+            }
+            uint16_t us = angulo_a_pwm(posicion_actual);
+            set_pwm_us(SERVO_PWM_PIN, us);
         }
 
         // Leer datos del GPS
