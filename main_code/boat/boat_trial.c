@@ -40,7 +40,7 @@
 #define ESC_LOW_US      1100
 
 #define BUF_SIZE 256
-
+#define DISTANCIA 30
 // Magnetic declination for your location in degrees
 float calcular_rumbo(int16_t x, int16_t y) {
     float fx = x - offsetX; // offsetX and offsetY are the offsets for the magnetometer
@@ -155,15 +155,13 @@ int main() {
 
         // Verificar distancia con el sensor ultrasónico
         uint32_t distancia = hc_sr04_ping_cm();
-        if (distancia > 0 && distancia < 30) {
+        if (distancia > 0 && distancia < DISTANCIA) {
             if (!obstaculo_detectado) {
-                printf("🚧 Obstáculo detectado a %lu cm. Girando a la izquierda.\n", distancia);
                 set_pwm_us(SERVO_PWM_PIN, SERVO_IZQ_US);
                 obstaculo_detectado = true;
             }
         } else {
             if (obstaculo_detectado) {
-                printf("✅ Camino despejado. Retomando control automático.\n");
                 obstaculo_detectado = false;
             }
         }
