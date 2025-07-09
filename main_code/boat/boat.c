@@ -3,7 +3,7 @@
  * This code is for an autonomous boat that uses a magnetometer, GPS, and Bluetooth to navigate.
  * It reads commands from a Bluetooth device to control speed and position, and sends GPS data back.
  * The boat uses PWM for ESC (Electronic Speed Controller) and servo motor control.
- * By Miguel Angel Alvarez, Liliana Barbosa, and Kevin
+ * By Miguel Angel Alvarez, Liliana Barbosa, and Kevin Echeverri
  */
 
 #include <stdio.h>
@@ -152,7 +152,7 @@ int main() {
             }
         }
 
-        // Update servo position based on desired position
+        /*// Update servo position based on desired position
         if (absolute_time_diff_us(ultima_actualizacion, get_absolute_time()) > 50000) {
             ultima_actualizacion = get_absolute_time();
             if (posicion_actual < posicion_deseada) {
@@ -162,7 +162,7 @@ int main() {
             }
             uint16_t us = angulo_a_pwm(posicion_actual);
             set_pwm_us(SERVO_PWM_PIN, us);
-        }
+        }*/
 
         // Read GPS data
         if (uart_is_readable(GPS_UART_ID)) {

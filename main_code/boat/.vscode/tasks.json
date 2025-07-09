@@ -2,12 +2,29 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Generate Build Files",
+            "type": "process",
+            "command": "cmake",
+            "args": [
+                "-B", "${workspaceFolder}/build",
+                "-S", "${workspaceFolder}",
+                "-G", "Ninja"
+            ],
+            "problemMatcher": [],
+            "windows": {
+                "command": "cmake.exe"
+            }
+        },
+        {
             "label": "Compile Project",
             "type": "process",
-            "isBuildCommand": true,
+            "dependsOn": ["Generate Build Files"],
             "command": "${userHome}/.pico-sdk/ninja/v1.12.1/ninja",
             "args": ["-C", "${workspaceFolder}/build"],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "presentation": {
                 "reveal": "always",
                 "panel": "dedicated"
@@ -51,7 +68,7 @@
             ],
             "problemMatcher": [],
             "windows": {
-                "command": "${env:USERPROFILE}/.pico-sdk/openocd/0.12.0+dev/openocd.exe",
+                "command": "${env:USERPROFILE}/.pico-sdk/openocd/0.12.0+dev/openocd.exe"
             }
         }
     ]

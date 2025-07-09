@@ -69,7 +69,7 @@ bool nmea_parse_line(const char *line, gps_data_t *data) {
         data->longitude = nmea_to_decimal(fields[4]);
         data->lon_dir   = fields[5][0];
         if (data->lon_dir == 'W') data->longitude *= -1;
-        data->fix_quality = atoi(fields[6]);
+        data->fix_quality = atoi(fields[6]); //1 captures --- 0 no 
         data->satellites = atoi(fields[7]);
         data->altitude = atof(fields[9]);
         return true;

@@ -28,38 +28,38 @@ set(PICO_BOARD pico CACHE STRING "Board type")
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
 
-project(Lancha C CXX ASM)
+project(boat C CXX ASM)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Lancha Lancha.c qmc5883l.c qmc5883l.h nmea_parser.c nmea_parser.h)
+add_executable(boat boat.c qmc5883l.c qmc5883l.h nmea_parser.c nmea_parser.h)
 
-pico_set_program_name(Lancha "Lancha")
-pico_set_program_version(Lancha "0.1")
+pico_set_program_name(boat "boat")
+pico_set_program_version(boat "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Lancha 1)
-pico_enable_stdio_usb(Lancha 0)
+pico_enable_stdio_uart(boat 1)
+pico_enable_stdio_usb(boat 0)
 
 # Add the standard library to the build
-target_link_libraries(Lancha
+target_link_libraries(boat
         pico_stdlib
         )
 
 # Add the standard include files to the build
-target_include_directories(Lancha PRIVATE
+target_include_directories(boat PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # Add any user requested libraries
-target_link_libraries(Lancha 
+target_link_libraries(boat 
         hardware_spi
         hardware_i2c
         hardware_pwm
         )
 
-pico_add_extra_outputs(Lancha)
+pico_add_extra_outputs(boat)
 
