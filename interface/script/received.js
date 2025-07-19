@@ -1,7 +1,10 @@
 import { routeCell, selectedCell } from './main.js';
-import { grid, orientationDeg } from './grid.js';
+import { loadGrid, getGrid, orientationDeg } from './grid.js';
 import { evaluateCoordenates } from './betweenRS.js';
 
+await loadGrid();
+const grid = getGrid();
+console.log(grid);
 
 // Function to find the nearest cell in the grid based on GPS coordinates
 function findNearestCell(target, grid) {
@@ -30,21 +33,19 @@ function signalsToCoordinates(pointGPS) {
 }
 
 // Function to handle boat signals and convert them to coordinates
-// This function listens to the serial port for incoming messages from the boat
 export let writer = null;
 export async function boatSignals() {
   try {
     const serialPort = await navigator.serial.requestPort();
-    await serialPort.open({ baudRate: 112500 });
+    await serialPort.open({ baudRate: 9600 });
+
+    console.log("Port opened:", serialPort.getInfo());
 
     // Setup writer
     writer = serialPort.writable.getWriter();
 
-    const textDecoder = new TextDecoderStream();
-    const readableStreamClosed = serialPort.readable.pipeTo(textDecoder.writable);
-    const inputStream = textDecoder.readable;
-    const reader = inputStream.getReader();
-
+    const reader = serialPort.readable.getReader();
+    const decoder = new TextDecoder(); // decode manually each chunk
     let buffer = "";
 
     const coordDisplay = document.getElementById("coord-received");
@@ -57,38 +58,42 @@ export async function boatSignals() {
       const { value, done } = await reader.read();
       if (done) break;
       if (value) {
-        buffer += value;
+        const chunk = decoder.decode(value);
+        buffer += chunk;
 
-        // Search for messages in the buffer
+        //console.log("Raw read:", chunk); // DEBUG: shows real-time chunk
+
+        // Process complete messages (delimited by parentheses)
         let startIdx = buffer.indexOf("(");
         let endIdx = buffer.indexOf(")");
 
         while (startIdx !== -1 && endIdx > startIdx) {
-          const rawMessage = buffer.substring(startIdx + 1, endIdx);  // extract message without parentheses
-          buffer = buffer.slice(endIdx + 1);                          // remove processed message from buffer
+          const rawMessage = buffer.substring(startIdx + 1, endIdx);
+          buffer = buffer.slice(endIdx + 1); // keep rest of buffer
 
-          // Process the message
           const parts = rawMessage.split(",");
           const latitude = parseFloat(parts[0]);
           const longitude = parseFloat(parts[1]);
           const orientation = parseFloat(parts[2]);
 
-          // Boat signals to coordinates
-          const { x, y } = signalsToCoordinates({ lat: latitude, lon: longitude });
-          routeCell(x, y);                                                  // mark the cell in the fountain
-          coordDisplay.textContent = `(${x}, ${y})`;                        // display the coordinates
-          const degree = orientationDeg[orientation]["deg"];
-          orientationImagen.style.transform = `rotate(${degree}deg)`;       // change the rotation of the image
+          console.log('latitude: ', latitude);
+          console.log('longitude: ', longitude);
+          console.log('orientation: ', orientation);
 
-          // Update the display elements
+          const { x, y } = signalsToCoordinates({ lat: latitude, lon: longitude });
+          routeCell(x, y);
+          coordDisplay.textContent = `(${x}, ${y})`;
+
+          const degree = orientationDeg[orientation]["deg"];
+          orientationImagen.style.transform = `rotate(${degree}deg)`;
+
           latitudeDisplay.textContent = `${latitude}`;
           longitudeDisplay.textContent = `${longitude}`;
           orientationDisplay.textContent = `${orientation} (${orientationDeg[orientation]["name"]})`;
 
-          // Operations between coordenates
           evaluateCoordenates(x, y, orientation, selectedCell);
 
-          // Search for the next message
+          // Look for next message
           startIdx = buffer.indexOf("(");
           endIdx = buffer.indexOf(")");
         }

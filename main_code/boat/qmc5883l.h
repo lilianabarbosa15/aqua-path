@@ -20,6 +20,6 @@ void qmc5883l_init();
 bool qmc5883l_read_raw(int16_t *x, int16_t *y, int16_t *z);
 
 // Convierte heading en grados a texto cardinal
-const char* deg_name(float headingDeg);
+int deg_name(float headingDeg);
 
 #endif

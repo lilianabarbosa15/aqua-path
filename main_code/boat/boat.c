@@ -16,7 +16,12 @@
 #include "pico/time.h"
 
 #include "nmea_parser.h"
+#include "hc_sr04.h"
 #include "qmc5883l.h"
+
+// Config sensor
+#define TRIG_PIN 16
+#define ECHO_PIN 17
 
 // Config of pins BT device
 #define BT_UART_ID uart0
@@ -27,7 +32,7 @@
 // Config of pins GPS device
 #define GPS_UART_ID uart1
 #define GPS_BAUD_RATE 9600
-#define GPS_TX_PIN 8
+#define GPS_TX_PIN 8    
 #define GPS_RX_PIN 9
 
 // Config of Boat pins
@@ -40,6 +45,8 @@
 #define ESC_LOW_US      1100
 
 #define BUF_SIZE 256
+
+#define DISTANCIA 30
 
 // Magnetic declination for your location in degrees
 float calcular_rumbo(int16_t x, int16_t y) {
@@ -81,11 +88,11 @@ uint16_t angulo_a_pwm(int angulo) {
 char cmd_buffer[64];
 int cmd_index = 0;
 
-// Offsets for the magnetometer (these values should be calibrated for your specific sensor)
-volatile int posicion_deseada = 180;
-int posicion_actual = 180;
-absolute_time_t ultima_actualizacion;
-
+// Offsets for the magnetometer
+volatile int degree_desired = 1;    //1-8 (lo envía la página)
+int direction = 180;                //dirección del barco
+int degree = 1;                     //1-8 (grado que marca el barco)
+float distancia = 0;
 
 int main() {
     stdio_init_all(); // Initialize standard I/O
@@ -109,9 +116,6 @@ int main() {
     set_pwm_us(ESC_PWM_PIN, 1000);
     set_pwm_us(SERVO_PWM_PIN, SERVO_CENTRO_US);
 
-    // Initialize the magnetometer offsets (these should be calibrated)
-    ultima_actualizacion = get_absolute_time();
-
     // Set the magnetic declination for your location (in degrees)
     const char *inicio = "\r\n System ready. Sending (lat,lon,dir) y receiving vel/dir.\r\n";
     uart_write_blocking(BT_UART_ID, (const uint8_t *)inicio, strlen(inicio));
@@ -120,10 +124,11 @@ int main() {
     char gps_line[BUF_SIZE];
     int index = 0;
     gps_data_t gps;
-    kalman_t kalman_lat;
-    kalman_t kalman_lon;
-    kalman_init(&kalman_lat, 7, 1, 0.00001);
-    kalman_init(&kalman_lon, -80, 1, 0.00001);
+
+    // Initialize sensor ultrasonic
+    hc_sr04_init(TRIG_PIN,ECHO_PIN);
+    bool obstaculo_detectado = false;
+    
 
     while (true) {
         // Read commands from Bluetooth
@@ -133,16 +138,17 @@ int main() {
             if (c == '\n' || c == '\r') {
                 cmd_buffer[cmd_index] = '\0';// end of command
                 if (cmd_index > 0) {// process command
-                    if (strncmp(cmd_buffer, "velocidad ", 10) == 0) {// set speed command
-                        int velocidad = atoi(cmd_buffer + 10);// get speed value
-                        if (velocidad >= 0 && velocidad <= 100) {// check speed range
+                    // (vel, degree)
+                    if (strncmp(cmd_buffer, "velocidad ", 10) == 0) {   // set speed command
+                        int velocidad = atoi(cmd_buffer + 10);          // get speed value
+                        if (velocidad >= 0 && velocidad <= 100) {       // check speed range
                             uint16_t us = ESC_OFF_US + (velocidad * (ESC_LOW_US - ESC_OFF_US) / 100);// convert to PWM value
-                            set_pwm_us(ESC_PWM_PIN, us);// set PWM for ESC
+                            set_pwm_us(ESC_PWM_PIN, us);                // set PWM for ESC
                         }
-                    } else if (strncmp(cmd_buffer, "posicion ", 9) == 0) {// set position command
-                        int posicion = atoi(cmd_buffer + 9);// get position value
-                        if (posicion >= 1 && posicion <= 360) {// check position range
-                            posicion_deseada = posicion;// set desired position
+                    } else if (strncmp(cmd_buffer, "posicion ", 9) == 0) {  // set position command
+                        int posicion = atoi(cmd_buffer + 9);            // get position value
+                        if (posicion >= 1 && posicion <= 8) {           // check position range
+                            degree_desired = posicion;                  // set desired position
                         }
                     }
                     cmd_index = 0;// reset command index
@@ -152,17 +158,30 @@ int main() {
             }
         }
 
-        /*// Update servo position based on desired position
-        if (absolute_time_diff_us(ultima_actualizacion, get_absolute_time()) > 50000) {
-            ultima_actualizacion = get_absolute_time();
-            if (posicion_actual < posicion_deseada) {
-                posicion_actual++;// increment position
-            } else if (posicion_actual > posicion_deseada) {
-                posicion_actual--;// decrement position
-            }
-            uint16_t us = angulo_a_pwm(posicion_actual);
-            set_pwm_us(SERVO_PWM_PIN, us);
-        }*/
+        // Update servo position based on desired position
+        if (distancia > 0 && distancia < DISTANCIA) {
+            if (!obstaculo_detectado) {
+                uint16_t us = angulo_a_pwm(360);
+                set_pwm_us(SERVO_PWM_PIN, us);
+                obstaculo_detectado = true;
+                        }
+        } else {
+            if (obstaculo_detectado) {
+                            obstaculo_detectado = false;
+                }
+        }
+        int diff = (degree_desired - degree + 8) % 8;
+        if(!obstaculo_detectado){
+        if (diff == 0 )
+            direction = 180;
+        else if (diff <= 4)
+            direction = 1;
+        else
+            direction = 360;
+        uint16_t us = angulo_a_pwm(direction);
+        set_pwm_us(SERVO_PWM_PIN, us);
+        }
+        
 
         // Read GPS data
         if (uart_is_readable(GPS_UART_ID)) {
@@ -171,18 +190,25 @@ int main() {
                 gps_line[index] = '\0';
                 index = 0;
                 // Process the GPS line
-                if (gps_line[0] == '$' && nmea_parse_line(gps_line, &gps)) {// Check if the line is a valid NMEA sentence
-                    double lat_f = kalman_update(&kalman_lat, gps.latitude);// Update latitude with Kalman filter
-                    double lon_f = kalman_update(&kalman_lon, gps.longitude);// Update longitude with Kalman filter
+                if (gps_line[0] == '$' && nmea_parse_line(gps_line, &gps) && gps.satellites >= 3) {//7 Check if the line is a valid NMEA sentence
+                    double lat_f = gps.latitude;
+                    double lon_f = gps.longitude;
+
                     // Read the magnetometer and calculate heading
                     int16_t x, y, z;
                     float heading = 0.0f;
                     if (qmc5883l_read_raw(&x, &y, &z)) {
                         heading = calcular_rumbo(x, y);// Calculate heading from magnetometer data
+                        degree = deg_name(heading + 0.5f);
                     }
                     // Send the GPS data via Bluetooth
                     char mensaje[128];
-                    snprintf(mensaje, sizeof(mensaje), "(%.6f,%.6f,%d)\r\n", lat_f, lon_f, (int)(heading + 0.5f));
+
+                    // distancia
+                    distancia = hc_sr04_read_cm();
+
+                    snprintf(mensaje, sizeof(mensaje), "(%.6f,%.6f,%d)\r\n", lat_f, lon_f, degree);
+                    //snprintf(mensaje, sizeof(mensaje), "(%.6f,%.6f,%d),%.2f,%d,%d\r\n", lat_f, lon_f, degree,  distancia, degree_desired, direction);
                     uart_write_blocking(BT_UART_ID, (const uint8_t *)mensaje, strlen(mensaje));
                 }
             } else if (c != '\r') {// Ignore carriage return characters

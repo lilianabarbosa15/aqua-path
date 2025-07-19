@@ -11,8 +11,8 @@
 #define REG_RESET   0x0B
 
 #define I2C_PORT i2c0
-#define SDA_PIN  16
-#define SCL_PIN  17
+#define SDA_PIN  4
+#define SCL_PIN  5
 
 float offsetX = 0;
 float offsetY = 0;
@@ -51,23 +51,23 @@ bool qmc5883l_read_raw(int16_t *x, int16_t *y, int16_t *z) {
     return true;
 }
 
-const char* deg_name(float headingDeg) {
+int deg_name(float headingDeg) {
     if (headingDeg >= 337 || headingDeg <= 23)
-        return "N";
+        return 1;     //North
     else if (headingDeg >= 23 && headingDeg <= 68)
-        return "NW";
+        return 8;     //Northwest
     else if (headingDeg >= 68 && headingDeg <= 113)
-        return "W";
+        return 7;     //West
     else if (headingDeg >= 113 && headingDeg <= 158)
-        return "SW";
+        return 6;     //Southwest
     else if (headingDeg >= 158 && headingDeg <= 203)
-        return "S";
+        return 5;     //South
     else if (headingDeg >= 203 && headingDeg <= 248)
-        return "SE";
+        return 4;     //Southeast
     else if (headingDeg >= 248 && headingDeg <= 293)
-        return "E";
+        return 3;     //East
     else if (headingDeg >= 293 && headingDeg <= 337)
-        return "NE";
+        return 2;     //Northeast
     else
-        return "Unknown";
+        return 1;
 }

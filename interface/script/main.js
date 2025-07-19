@@ -14,8 +14,8 @@ const zone = document.getElementById("zone");
 
 const polygonPoints = zone.getAttribute("points").trim().split(" ").map(p => p.split(',').map(Number));
 
-const cols = 20;
-const rows = 27;
+const cols = 10; //20;
+const rows = 15; //27;
 const width = 708;
 const height = 683;
 const cellW = width / cols;

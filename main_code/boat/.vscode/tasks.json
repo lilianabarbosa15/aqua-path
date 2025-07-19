@@ -12,14 +12,20 @@
             ],
             "problemMatcher": [],
             "windows": {
-                "command": "cmake.exe"
+                "command": "${env:USERPROFILE}\\.pico-sdk\\cmake\\v3.31.5\\bin\\cmake.exe"
+            },
+            "linux": {
+                "command": "${env:HOME}/.pico-sdk/cmake/v3.31.5/bin/cmake"
+            },
+            "osx": {
+                "command": "${env:HOME}/.pico-sdk/cmake/v3.31.5/bin/cmake"
             }
         },
         {
             "label": "Compile Project",
             "type": "process",
             "dependsOn": ["Generate Build Files"],
-            "command": "${userHome}/.pico-sdk/ninja/v1.12.1/ninja",
+            "command": "ninja",
             "args": ["-C", "${workspaceFolder}/build"],
             "group": {
                 "kind": "build",
@@ -31,13 +37,19 @@
             },
             "problemMatcher": "$gcc",
             "windows": {
-                "command": "${env:USERPROFILE}/.pico-sdk/ninja/v1.12.1/ninja.exe"
+                "command": "${env:USERPROFILE}\\.pico-sdk\\ninja\\v1.12.1\\ninja.exe"
+            },
+            "linux": {
+                "command": "${env:HOME}/.pico-sdk/ninja/v1.12.1/ninja"
+            },
+            "osx": {
+                "command": "${env:HOME}/.pico-sdk/ninja/v1.12.1/ninja"
             }
         },
         {
             "label": "Run Project",
             "type": "process",
-            "command": "${env:HOME}/.pico-sdk/picotool/2.1.1/picotool/picotool",
+            "command": "picotool",
             "args": [
                 "load",
                 "${command:raspberry-pi-pico.launchTargetPath}",
@@ -49,16 +61,22 @@
             },
             "problemMatcher": [],
             "windows": {
-                "command": "${env:USERPROFILE}/.pico-sdk/picotool/2.1.1/picotool/picotool.exe"
+                "command": "${env:USERPROFILE}\\.pico-sdk\\picotool\\2.1.1\\picotool\\picotool.exe"
+            },
+            "linux": {
+                "command": "${env:HOME}/.pico-sdk/picotool/2.1.1/picotool/picotool"
+            },
+            "osx": {
+                "command": "${env:HOME}/.pico-sdk/picotool/2.1.1/picotool/picotool"
             }
         },
         {
             "label": "Flash",
             "type": "process",
-            "command": "${userHome}/.pico-sdk/openocd/0.12.0+dev/openocd.exe",
+            "command": "openocd",
             "args": [
                 "-s",
-                "${userHome}/.pico-sdk/openocd/0.12.0+dev/scripts",
+                "${env:PICO_SDK_PATH}/../openocd/0.12.0+dev/scripts",
                 "-f",
                 "interface/cmsis-dap.cfg",
                 "-f",
@@ -68,7 +86,13 @@
             ],
             "problemMatcher": [],
             "windows": {
-                "command": "${env:USERPROFILE}/.pico-sdk/openocd/0.12.0+dev/openocd.exe"
+                "command": "${env:USERPROFILE}\\.pico-sdk\\openocd\\0.12.0+dev\\openocd.exe"
+            },
+            "linux": {
+                "command": "${env:HOME}/.pico-sdk/openocd/0.12.0+dev/openocd"
+            },
+            "osx": {
+                "command": "${env:HOME}/.pico-sdk/openocd/0.12.0+dev/openocd"
             }
         }
     ]

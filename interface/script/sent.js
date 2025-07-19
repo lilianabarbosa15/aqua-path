@@ -61,12 +61,14 @@ async function sendInstructionsToBoat(orientationKey, speed) {
   }
 
   // Format the message to match the expected structure: (orientation,speed)
-  const message = `(${orientationKey},${speed})`;
+  const message = `posicion ${orientationKey} \nvelocidad ${speed})`;
   console.log("Sending:", message);
 
   // Encode the message as a Uint8Array so it can be written to the serial port
   const encoder = new TextEncoder();
   await writer.write(encoder.encode(message));  // Send the encoded message
+
+  
 }
 
 // This function calculates everything necessary to drive the boat
@@ -87,7 +89,7 @@ export function calculateIntructions(boatCell, objectifCell) {
     orientationDisplay.textContent = `${orientation} (${orientationDeg[orientation]["name"]})`;
 
     // Update velocity display
-    const vel = 0.5;
+    const vel = 50;
     velocity.textContent = `${vel}`;
 
     sendInstructionsToBoat(orientation, vel);

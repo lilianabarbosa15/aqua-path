@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(boat boat.c qmc5883l.c qmc5883l.h nmea_parser.c nmea_parser.h)
+add_executable(boat boat.c qmc5883l.c qmc5883l.h nmea_parser.c nmea_parser.h hc_sr04.c hc_sr04.h)
 
 pico_set_program_name(boat "boat")
 pico_set_program_version(boat "0.1")
@@ -59,6 +59,7 @@ target_link_libraries(boat
         hardware_spi
         hardware_i2c
         hardware_pwm
+        hardware_gpio
         )
 
 pico_add_extra_outputs(boat)

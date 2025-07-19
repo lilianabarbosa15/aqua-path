@@ -1,7 +1,7 @@
 {
   // CMake general config
   "cmake.generator": "Ninja",
-  "cmake.cmakePath": "C:\\Users\\LILIANA\\.pico-sdk\\cmake\\v3.31.5\\bin\\cmake.exe",
+  "cmake.cmakePath": "${env:HOME}/.pico-sdk/cmake/v3.31.5/bin/cmake",
   "cmake.showSystemKits": false,
   "cmake.configureOnOpen": false,
   "cmake.configureOnEdit": false,
@@ -22,14 +22,14 @@
   // Raspberry Pi Pico extension config
   "raspberry-pi-pico.useCmakeTools": false,
   "raspberry-pi-pico.cmakeAutoConfigure": true,
-  "raspberry-pi-pico.cmakePath": "C:\\Users\\LILIANA\\.pico-sdk\\cmake\\v3.31.5\\bin\\cmake.exe",
-  "raspberry-pi-pico.ninjaPath": "C:\\Users\\LILIANA\\.pico-sdk\\ninja\\v1.12.1\\ninja.exe",
+  "raspberry-pi-pico.cmakePath": "${env:HOME}/.pico-sdk/cmake/v3.31.5/bin/cmake",
+  "raspberry-pi-pico.ninjaPath": "${env:HOME}/.pico-sdk/ninja/v1.12.1/ninja",
 
   // Entorno terminal para Windows
   "terminal.integrated.env.windows": {
-    "PICO_SDK_PATH": "C:\\Users\\LILIANA\\.pico-sdk\\sdk\\2.1.1",
-    "PICO_TOOLCHAIN_PATH": "C:\\Users\\LILIANA\\.pico-sdk\\toolchain\\14_2_Rel1",
-    "Path": "C:\\Users\\LILIANA\\.pico-sdk\\toolchain\\14_2_Rel1\\bin;C:\\Users\\LILIANA\\.pico-sdk\\picotool\\2.1.1\\picotool;C:\\Users\\LILIANA\\.pico-sdk\\cmake\\v3.31.5\\bin;C:\\Users\\LILIANA\\.pico-sdk\\ninja\\v1.12.1;${env:PATH}"
+    "PICO_SDK_PATH": "${env:USERPROFILE}\\.pico-sdk\\sdk\\2.1.1",
+    "PICO_TOOLCHAIN_PATH": "${env:USERPROFILE}\\.pico-sdk\\toolchain\\14_2_Rel1",
+    "Path": "${env:USERPROFILE}\\.pico-sdk\\toolchain\\14_2_Rel1\\bin;${env:USERPROFILE}\\.pico-sdk\\picotool\\2.1.1\\picotool;${env:USERPROFILE}\\.pico-sdk\\cmake\\v3.31.5\\bin;${env:USERPROFILE}\\.pico-sdk\\ninja\\v1.12.1;${env:PATH}"
   },
 
   // Entorno terminal para macOS
@@ -47,5 +47,9 @@
   },
 
   // Otros ajustes
-  "C_Cpp.debugShortcut": false
+  "C_Cpp.debugShortcut": false,
+  "files.associations": {
+    "*.dbclient-js": "javascript",
+    "gpio.h": "c"
+  }
 }
