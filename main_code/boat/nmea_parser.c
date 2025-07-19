@@ -13,7 +13,7 @@ static double nmea_to_decimal(const char *nmea_coord) {
 bool nmea_parse_line(const char *line, gps_data_t *data) {
     if (!line || line[0] != '$') return false;
 
-    // Eliminar memset aquí para no sobrescribir datos anteriores
+    // Delete memset here to avoid overwriting previous data
     // memset(data, 0, sizeof(gps_data_t));
 
     char fields[20][24] = {0};
@@ -39,7 +39,7 @@ bool nmea_parse_line(const char *line, gps_data_t *data) {
         }
 
         data->valid_fix = true;
-        data->fix_quality = 1; // Trama RMC no tiene calidad real, pero asumimos válida si hay fix
+        data->fix_quality = 1; // RMC frame does not have real quality, but we assume valid if there is fix
         sscanf(fields[1], "%2d%2d%2d", &data->hour, &data->minute, &data->second);
         data->latitude = nmea_to_decimal(fields[3]);
         data->lat_dir = fields[4][0];
@@ -53,7 +53,7 @@ bool nmea_parse_line(const char *line, gps_data_t *data) {
     }
 
     if (strncmp(line, "$GPGGA", 6) == 0 || strncmp(line, "$GNGGA", 6) == 0) {
-        // Solo actualizar si hay coordenadas válidas
+        // Only update if there are valid coordinates
         if (fields[2][0]) {
             data->latitude = nmea_to_decimal(fields[2]);
             data->lat_dir = fields[3][0];

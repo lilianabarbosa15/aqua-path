@@ -61,7 +61,7 @@ export async function boatSignals() {
         const chunk = decoder.decode(value);
         buffer += chunk;
 
-        //console.log("Raw read:", chunk); // DEBUG: shows real-time chunk
+        //console.log("Raw read:", chunk); // DEBUG
 
         // Process complete messages (delimited by parentheses)
         let startIdx = buffer.indexOf("(");

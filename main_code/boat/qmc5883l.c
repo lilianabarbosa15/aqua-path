@@ -10,40 +10,36 @@
 #define REG_CONTROL 0x09
 #define REG_RESET   0x0B
 
-#define I2C_PORT i2c0
-#define SDA_PIN  4
-#define SCL_PIN  5
-
 float offsetX = 0;
 float offsetY = 0;
 
-void qmc5883l_init() {
-    i2c_init(I2C_PORT, 100000);
-    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
-    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
-    gpio_pull_up(SDA_PIN);
-    gpio_pull_up(SCL_PIN);
+void qmc5883l_init(qmc5883l_ctx_t *ctx) {
+    i2c_init(ctx->i2c, 100000);
+    gpio_set_function(ctx->sda_pin, GPIO_FUNC_I2C);
+    gpio_set_function(ctx->scl_pin, GPIO_FUNC_I2C);
+    gpio_pull_up(ctx->sda_pin);
+    gpio_pull_up(ctx->scl_pin);
 
     sleep_ms(100);
 
     uint8_t rst[2] = { REG_RESET, 0x01 };
-    i2c_write_blocking(I2C_PORT, QMC5883L_ADDR, rst, 2, false);
+    i2c_write_blocking(ctx->i2c, QMC5883L_ADDR, rst, 2, false);
     sleep_ms(10);
 
     uint8_t cfg[2] = { REG_CONTROL, 0x1D }; // 200Hz, continuo, ±2G, 512 oversampling
-    i2c_write_blocking(I2C_PORT, QMC5883L_ADDR, cfg, 2, false);
+    i2c_write_blocking(ctx->i2c, QMC5883L_ADDR, cfg, 2, false);
     sleep_ms(10);
 }
 
-bool qmc5883l_read_raw(int16_t *x, int16_t *y, int16_t *z) {
+bool qmc5883l_read_raw(qmc5883l_ctx_t *ctx, int16_t *x, int16_t *y, int16_t *z) {
     uint8_t st;
-    i2c_write_blocking(I2C_PORT, QMC5883L_ADDR, (uint8_t[]){REG_STATUS}, 1, true);
-    i2c_read_blocking(I2C_PORT, QMC5883L_ADDR, &st, 1, false);
+    i2c_write_blocking(ctx->i2c, QMC5883L_ADDR, (uint8_t[]){REG_STATUS}, 1, true);
+    i2c_read_blocking(ctx->i2c, QMC5883L_ADDR, &st, 1, false);
     if ((st & 0x01) == 0) return false;
 
     uint8_t buf[6];
-    i2c_write_blocking(I2C_PORT, QMC5883L_ADDR, (uint8_t[]){REG_DATA}, 1, true);
-    i2c_read_blocking(I2C_PORT, QMC5883L_ADDR, buf, 6, false);
+    i2c_write_blocking(ctx->i2c, QMC5883L_ADDR, (uint8_t[]){REG_DATA}, 1, true);
+    i2c_read_blocking(ctx->i2c, QMC5883L_ADDR, buf, 6, false);
 
     *x = (int16_t)((buf[1] << 8) | buf[0]);
     *y = (int16_t)((buf[3] << 8) | buf[2]);

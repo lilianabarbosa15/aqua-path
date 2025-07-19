@@ -89,7 +89,11 @@ export function calculateIntructions(boatCell, objectifCell) {
     orientationDisplay.textContent = `${orientation} (${orientationDeg[orientation]["name"]})`;
 
     // Update velocity display
-    const vel = 50;
+    let vel = 50;                               // Set a constant speed for the boat
+    if (boatCell.x === x && boatCell.y === y) {
+        vel = 0;                                // If the boat is already at the target, stop it
+        console.log("Boat is already at the target, stopping.");
+    }
     velocity.textContent = `${vel}`;
 
     sendInstructionsToBoat(orientation, vel);

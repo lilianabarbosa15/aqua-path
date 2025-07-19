@@ -1,7 +1,7 @@
 #include "bmi160_lib.h"
 #include "pico/stdlib.h"
 
-// ──────────────────── Registers BMI160 ────────────────────
+// -------------------- BMI160 Registers --------------------
 #define BMI160_REG_CHIP_ID      0x00
 #define BMI160_REG_DATA_GYR     0x0C  // 6 bytes
 #define BMI160_REG_DATA_ACC     0x12  // 6 bytes
@@ -30,7 +30,7 @@ bool bmi160_init(i2c_inst_t *i2c,
                  uint sda_pin, uint scl_pin,
                  uint8_t addr)
 {
-    // Configura GPIO + I²C
+    // Configure GPIO + I2C
     i2c_init(i2c, 400 * 1000);
     gpio_set_function(sda_pin, GPIO_FUNC_I2C);
     gpio_set_function(scl_pin, GPIO_FUNC_I2C);
@@ -39,21 +39,21 @@ bool bmi160_init(i2c_inst_t *i2c,
 
     sleep_ms(10);
 
-    // Soft-reset
+    // Soft reset
     reg_write(i2c, addr, BMI160_REG_CMD, BMI160_CMD_SOFT_RESET);
     sleep_ms(100);
 
-    // Verifica CHIP_ID (debe ser 0xD1)
+    // Check CHIP_ID (should be 0xD1)
     uint8_t chip_id;
     if (!reg_read(i2c, addr, BMI160_REG_CHIP_ID, &chip_id, 1) ||
         chip_id != 0xD1)
         return false;
 
-    // Rango ±2 g (0x03) y ±2000 °/s (0x00)
+    // Range ±2 g (0x03) and ±2000°/s (0x00)
     reg_write(i2c, addr, BMI160_REG_ACC_RANGE, 0x03);
     reg_write(i2c, addr, BMI160_REG_GYR_RANGE, 0x00);
 
-    // Activa modos normal
+    // Enable normal modes
     reg_write(i2c, addr, BMI160_REG_CMD, BMI160_CMD_ACC_NORMAL);
     reg_write(i2c, addr, BMI160_REG_CMD, BMI160_CMD_GYR_NORMAL);
     sleep_ms(50);
@@ -67,7 +67,7 @@ bool bmi160_read(i2c_inst_t *i2c,
 {
     uint8_t raw[12];
 
-    // Leemos Gyro(6) + Acc(6) de una sola vez
+    // Read Gyro(6) + Acc(6) in one go
     if (!reg_read(i2c, addr, BMI160_REG_DATA_GYR, raw, 12))
         return false;
 
