@@ -33,3 +33,12 @@ Uses RP2040 sleep modes and efficient voltage regulators to extend battery life 
 
 - Availability: 75% uptime minimum, with auto-recovery or user alerts on failure.
 
+## Web Page Result
+![Web Page](src/image_WA.png)
+The image above shows the result of running the web page locally from this repository. By clicking the blue button, the page connects to the COM port associated with the classic Bluetooth module (in this case, an HC-06). Once the connection is established, the computer receives the boat’s real GPS coordinates and maps them to the closest point within the predefined grid.
+
+**Note:** Before starting the embedded system's navigation and control process, it’s important to remap the grid’s corner coordinates based on the most recent GPS data.
+
+## Hardware setup within the embedded system
+![Hardware](src/image_HW.png)
+The image above shows how the sensors are connected to the Raspberry Pi Pico. The 1x3 pin headers are used for the servo motor and the brushless motor, the 1x5 pin header is connected to the GPS module, and the 1x2 pin header is for the system’s power supply.
