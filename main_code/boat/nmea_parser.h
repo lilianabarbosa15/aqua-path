@@ -1,3 +1,6 @@
+/**
+ * GPS Data Parser
+ */
 #ifndef NMEA_PARSER_H
 #define NMEA_PARSER_H
 

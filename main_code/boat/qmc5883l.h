@@ -1,3 +1,10 @@
+/**
+ * @file qmc5883l.h
+ * @brief QMC5883L Magnetometer Driver
+ *
+ * This file provides an interface for the QMC5883L magnetometer sensor.
+ */
+
 #ifndef QMC5883L_H
 #define QMC5883L_H
 

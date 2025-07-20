@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['bmi160_5facc_5flsb_5fper_5fg_0',['BMI160_ACC_LSB_PER_G',['../a00029.html#af09b2704cbb1a74e5ac9fdb63a0268d1',1,'bmi160_lib.h']]],
+  ['bmi160_5fcmd_5facc_5fnormal_1',['BMI160_CMD_ACC_NORMAL',['../a00026.html#a7982b08752041ac76f40c48f2d021b0c',1,'bmi160_lib.c']]],
+  ['bmi160_5fcmd_5fgyr_5fnormal_2',['BMI160_CMD_GYR_NORMAL',['../a00026.html#ae2e7546eb87d4e894916febcafdbdb8c',1,'bmi160_lib.c']]],
+  ['bmi160_5fcmd_5fsoft_5freset_3',['BMI160_CMD_SOFT_RESET',['../a00026.html#a36c9bc1b4cfe29642c53dfef116aa0d3',1,'bmi160_lib.c']]],
+  ['bmi160_5fgyr_5flsb_5fper_5fdps_4',['BMI160_GYR_LSB_PER_DPS',['../a00029.html#af56eb0e44e6434f7388583737fd624db',1,'bmi160_lib.h']]],
+  ['bmi160_5freg_5facc_5frange_5',['BMI160_REG_ACC_RANGE',['../a00026.html#a501238ecab019ad45e505194e84ad26c',1,'bmi160_lib.c']]],
+  ['bmi160_5freg_5fchip_5fid_6',['BMI160_REG_CHIP_ID',['../a00026.html#a8197532e6903e8ba533637e446907b26',1,'bmi160_lib.c']]],
+  ['bmi160_5freg_5fcmd_7',['BMI160_REG_CMD',['../a00026.html#a143321c0bffe2a06da025438b39dcb0d',1,'bmi160_lib.c']]],
+  ['bmi160_5freg_5fdata_5facc_8',['BMI160_REG_DATA_ACC',['../a00026.html#aefec0b74b232c44ac75621bd9c567239',1,'bmi160_lib.c']]],
+  ['bmi160_5freg_5fdata_5fgyr_9',['BMI160_REG_DATA_GYR',['../a00026.html#a5ac1b29c0e24c6940e5c8ddede7c9807',1,'bmi160_lib.c']]],
+  ['bmi160_5freg_5fgyr_5frange_10',['BMI160_REG_GYR_RANGE',['../a00026.html#aef10a951c5e70556ed371c784530c965',1,'bmi160_lib.c']]],
+  ['bt_5fbaud_5frate_11',['BT_BAUD_RATE',['../a00005.html#aea9dc6a2929b2f9722afae9842e45f57',1,'boat.c']]],
+  ['bt_5frx_5fpin_12',['BT_RX_PIN',['../a00005.html#a380241e001bf0988467b3e70a33032c9',1,'boat.c']]],
+  ['bt_5ftx_5fpin_13',['BT_TX_PIN',['../a00005.html#a0b4c8d9988d46bfd7ffb4fbc7301255b',1,'boat.c']]],
+  ['bt_5fuart_5fid_14',['BT_UART_ID',['../a00005.html#ac109d6c24f636432921fb22a7bd14f35',1,'boat.c']]],
+  ['buf_5fsize_15',['BUF_SIZE',['../a00005.html#a6821bafc3c88dfb2e433a095df9940c6',1,'boat.c']]]
+];

@@ -1,3 +1,6 @@
+/**
+ * GPS Data Parser
+ */
 #include "nmea_parser.h"
 #include <string.h>
 #include <stdlib.h>

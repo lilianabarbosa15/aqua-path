@@ -1,0 +1,7 @@
+var searchData=
+[
+  ['bmi160_5fget_5forientation_0',['bmi160_get_orientation',['../a00032.html#add6bd276e567843fb8da59986aa45685',1,'bmi160_get_orientation(const bmi160_ctx_t *ctx):&#160;bmi160_wrapper.c'],['../a00035.html#add6bd276e567843fb8da59986aa45685',1,'bmi160_get_orientation(const bmi160_ctx_t *ctx):&#160;bmi160_wrapper.c']]],
+  ['bmi160_5finit_1',['bmi160_init',['../a00026.html#a5fec532ed0b96aefefbffa1e540bbed2',1,'bmi160_init(i2c_inst_t *i2c, uint sda_pin, uint scl_pin, uint8_t addr):&#160;bmi160_lib.c'],['../a00029.html#a491a80720b36ddd2fb598d11905364c9',1,'bmi160_init(i2c_inst_t *i2c_inst, uint sda_pin, uint scl_pin, uint8_t address):&#160;bmi160_lib.c'],['../a00032.html#a8dd9eddbb03630cba932359b4e539ae3',1,'bmi160_init(bmi160_ctx_t *ctx):&#160;bmi160_wrapper.c'],['../a00035.html#a8dd9eddbb03630cba932359b4e539ae3',1,'bmi160_init(bmi160_ctx_t *ctx):&#160;bmi160_wrapper.c']]],
+  ['bmi160_5fread_2',['bmi160_read',['../a00026.html#ab9bf4ecddaa560ffd850acc5b88a89cf',1,'bmi160_read(i2c_inst_t *i2c, uint8_t addr, bmi160_data_t *out):&#160;bmi160_lib.c'],['../a00029.html#a0919d7a59249edbc230bcd6d37532f96',1,'bmi160_read(i2c_inst_t *i2c_inst, uint8_t address, bmi160_data_t *out):&#160;bmi160_lib.c']]],
+  ['bmi160_5fupdate_5forientation_3',['bmi160_update_orientation',['../a00032.html#ada62f76dd175f5f344039b95433a1cba',1,'bmi160_update_orientation(bmi160_ctx_t *ctx):&#160;bmi160_wrapper.c'],['../a00035.html#ada62f76dd175f5f344039b95433a1cba',1,'bmi160_update_orientation(bmi160_ctx_t *ctx):&#160;bmi160_wrapper.c']]]
+];

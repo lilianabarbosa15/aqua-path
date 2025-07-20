@@ -1,3 +1,8 @@
+/*
+ * Aqua Path - Autonomous Boat Project
+ * This code is for an autonomous boat that uses a magnetometer, GPS, and Bluetooth to navigate.
+ * It reads commands from a Bluetooth device to control speed and position, and sends GPS data back.
+ */
 #include <stdio.h>
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"

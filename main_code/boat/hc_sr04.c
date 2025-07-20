@@ -1,3 +1,10 @@
+/**
+ * HC-SR04 Ultrasonic Sensor Driver
+ *
+ * This driver provides an interface to the HC-SR04 ultrasonic distance sensor.
+ * It allows for initialization of the sensor and reading distance measurements.
+ */
+
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/timer.h"
